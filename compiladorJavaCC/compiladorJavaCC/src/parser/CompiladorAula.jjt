@@ -1,0 +1,521 @@
+/**
+ * JavaCC template file created by SF JavaCC plugin 1.5.28+ wizard for JavaCC 1.5.0+
+ */
+options
+{
+  static = true;
+}
+
+PARSER_BEGIN(CompiladorAula)
+
+package parser;
+import recovery.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.util.List;
+import java.util.ArrayList;
+
+public class CompiladorAula
+{
+
+	protected static List<String > logs = new ArrayList<String>();
+  
+public static void main(final String[] args) throws ParseException {
+		BufferedReader buffer = null;
+
+		try {
+			buffer = new BufferedReader(new FileReader(new File(args[0])));
+		} catch (Exception e) {
+			System.out.println("Ocorreu um erro ao tentar abrir o arquivo");
+			return;
+		}
+		try {
+			CompiladorAula parser = new CompiladorAula(buffer);
+			System.out.println("Lan\u00e7a ai menor:");
+		} catch (Exception e1) {
+			CompiladorAula.ReInit(buffer);
+		} catch (Error e1) {
+			CompiladorAula.ReInit(buffer);
+		}
+
+		try {
+			SimpleNode n = CompiladorAula.main();
+			System.out.println(n.dumpString("	"));
+		} catch (Exception e1) {
+		} catch (Error e1) {
+		}
+
+	}
+	
+	public static ResultCriaCompiler init(File file, String dumpSeparator) throws Exception, Error {
+		BufferedReader buffer = new BufferedReader(new FileReader(file));
+
+		ResultCriaCompiler result = new ResultCriaCompiler();
+		
+		try {
+			CompiladorAula parser = new CompiladorAula(buffer);
+			result.setResult("Processo finalizado sem erros");
+		} catch (Exception e1) {
+		  	result.setResult("Processo finalizado com erros porém foram corrigidos");
+		  	result.setError(e1.getMessage());
+			CompiladorAula.ReInit(buffer);
+		} catch (Error e1) {
+			CompiladorAula.ReInit(buffer);
+			result.setResult("Processo finalizado com erros porém foram corrigidos");
+		  	result.setError(e1.getMessage());
+		}
+
+		try {
+			SimpleNode n = CompiladorAula.main();
+			result.setDump(n.dumpString("\u0009"));
+		} catch (Exception e1) {
+		  result.setError(e1.getMessage());
+		} catch (Error e1) {
+			result.setError(e1.getMessage());
+		  }
+
+		if(logs.size() > 0) {
+			result.setResult("Processo finalizado com erros");
+		}
+
+		result.setLogs(logs);
+		
+		return result;
+	}
+
+//esse método recebe um int do token e diz qual é o valor léxico desse token (imagem)
+ static public String im(int x)
+  {
+    int k;
+	String s;
+    s = tokenImage[x];
+    k = s.lastIndexOf("\"");
+    try {
+      s = s.substring(1,k);
+    }
+   catch (StringIndexOutOfBoundsException e)
+	   {}
+   return s;
+  }
+	
+  static Token lastError = null;
+  static boolean eof;    // variável que indica se EOF foi alcançado
+	
+  // o método abaixo consome tokens até alcançar um que pertença ao conjunto
+  // de sincronização
+  //metodo para a sincronização do pânico
+  static void consumeUntil(RecoverySet g,
+	                 ParseException e,
+	                 String met) throws ParseEOFException,
+	                                    ParseException
+  {
+	Token tok;
+	System.out.println();
+	System.out.println("*** " + met + " ***");
+	logs.add("*** " + met + " ***");
+	System.out.println("     Conjunto de sincronização: " + g);
+	logs.add("     Conjunto de sincronização: " + g);
+		
+	if (g == null) throw e; // se o conjunto é null, propaga a exceção
+	
+	tok = getToken(1); // pega token corrente
+	while ( ! eof )	{ // se não chegou ao fim do arquivo
+	  if ( g.contains(tok.kind)) {//achou um token no conjunto
+	    System.out.println("     Encontrado token de sincronização: " + 
+	                       im(tok.kind));
+		logs.add("     Encontrado token de sincronização: " + 
+	                       im(tok.kind));
+	    break;
+	  }
+	  System.out.println("     Ignorando o token: " + im(tok.kind));
+	  getNextToken();     // pega próximo token       
+      tok = getToken(1);
+	  if (tok.kind == EOF && ! g.contains(EOF) ) // fim da entrada?   
+	      eof = true;
+	}
+    if ( tok != lastError)  {
+      logs.add(e.getMessage());
+	  System.out.println(e.getMessage());
+	  lastError = tok;
+	   
+	}
+	if ( eof )
+	  throw new ParseEOFException("Encontrei EOF onde não deveria.");
+  }
+  
+}
+
+PARSER_END(CompiladorAula)
+
+
+<*> SKIP: {
+" " | "\t" | "\r" | "\n" | "\r\n"
+|  < " " | "\t" | "\r" | "\n" | "\r\n" >
+| <"//" (~["\n","\r"])* ("\n"|"\r"|"\r\n"|"	") >
+| <"/*"(~["/"])*  "*""/" >
+}
+
+TOKEN : 
+{
+  < INICIOPROGRAMA : "bora dar um piao" >
+| < PONTOVIRGULA : ";" >
+| < VIRGULA : ",">
+| < ABREBLOCO : "{" >
+| < FIMBLOCO : "}" >
+| < INTEIRO : "redondo" >
+| < ATRIBUICAO: "recebe" >
+| < BOOLEANA: "seloco" >
+| < STRING: "desbaratinar uma ideia">
+}
+
+TOKEN :
+{
+ < NUMERO: (<DIGITO>)+ ( "." (<DIGITO>)+ )?>
+| < #DIGITO : [ "0"-"9" ] >
+| < IF: "se pa" >
+| < ELSE: "senao mete um migue">
+| < FOR: "repete essa porra" >
+| < TO: "ate" >
+| < DO: "lanca ai">
+| < TRUE: "bagulho eh memo">
+| < FALSE: "bagulho eh cao" >
+| < PALAVRA: ("'") (< LETRA >)+(" " (< LETRA >)*)* ("'")>
+| < ID: < LETRA >(< LETRA > | ["0" - "9"] | < UNDERLINE >)*>
+| < LETRA : ["A"-"Z"] | ["a"-"z"] >
+| < UNDERLINE:"_" >
+}
+
+TOKEN : {	/*OPERADORES LÓGICOS*/
+
+	< MAIOR: "eh maior" >
+|	< MENOR: "eh menor" >
+|	< MENOR_IGUAL: "eh menor ou igual" >
+|	< MAIOR_IGUAL: "eh maior ou igual" >
+|	< DIFERENTE: "eh diferente" >
+|	< IGUAL: "eh gemeo" >
+|   < AND : "&&" >
+|   < OR: "||" >
+|   < SOMA: "+" >
+|	< SUBTRACAO: "-" >
+|	< MULTIPLICACAO: "*" >
+|	< DIVISAO: "/" >	
+}
+
+SimpleNode main() :
+{ RecoverySet sinc = First.main; }
+{
+  try {
+
+inicioPrograma() abreBloco()
+
+/* PODE OU NÃO TER CÓDIGO */
+(comando())*
+
+fimBloco() }
+
+
+catch(ParseException e) { consumeUntil(sinc, e, "main"); }
+
+
+{return jjtThis;}
+}
+
+void inicioPrograma(): { RecoverySet sinc = First.inicioPrograma; }
+ {
+   try { < INICIOPROGRAMA > }
+   
+   catch(ParseException e) {
+     consumeUntil(sinc, e, "inicioPrograma");
+    }
+   }
+
+
+void abreBloco(): { RecoverySet sinc = First.abreBloco; }
+ {
+	try { 
+	 < ABREBLOCO >
+	}
+	catch(ParseException e) { consumeUntil(sinc, e, "abreBloco"); }
+ }
+
+ 
+void fimBloco(): { RecoverySet sincronizacao = First.fimBloco; }
+				 { try { < FIMBLOCO > } catch(ParseException e) { consumeUntil(sincronizacao, e, "fimBloco"); } }
+
+
+void comando() : { RecoverySet sincronizacao = First.comando; } 
+{
+  	/* PODE SER:
+  		ATRIBUIÇÃO DE VARIÁVEL
+  	 	DECLARAÇÃO DE VARIÁVEL
+  	 	EXPRESSÃO MATEMÁTICA
+		CONDICIONAL
+		UM DOS 2 LAÇOS DE REPETIÇÃO
+  	 */
+	try {
+		 atribuir_ou_expressao() |
+	  	 declaracaoVariavel() |
+	  	 if_funcao()|
+	  	 for_funcao() |
+	  	 do_funcao()
+  	 } catch(ParseException e) { consumeUntil(sincronizacao, e, "comando"); }
+  	 
+}
+
+void atribuir_ou_expressao(): { RecoverySet sinc = First.atribuir_ou_expressao; } {
+  try { 
+		((id() atribuicao() | expressao_matematica()) | (numero() expressao_matematica() )) pontoVirgula()
+	  }
+	catch(ParseException e) { consumeUntil(sinc, e, "atribuir_ou_expressao"); }
+}
+
+void forNaoTerminal(): { RecoverySet sinc = First.forNaoTerminal; } { try { < FOR > } catch(ParseException e) { consumeUntil(sinc, e, "forNaoTerminal"); } }
+
+void for_funcao(): { RecoverySet sinc = First.for_funcao; }
+{
+  try { 
+  forNaoTerminal() variavel_for() to() variavel_for() abreBloco()
+
+	/* PODE OU NÃO TER VÁRIOS IF/FOR/DO ENCADEADO */
+  (comando())*
+
+  fimBloco() }
+  catch(ParseException e) { consumeUntil(sinc, e, "for_funcao"); }
+}
+
+void variavel_for(): { RecoverySet sinc = First.variavel_for; } {
+  try { 
+	id()|numero()
+  }
+  catch(ParseException e) { consumeUntil(sinc, e, "variavel_for"); }
+}
+
+void if_funcao(): { RecoverySet sinc = First.if_funcao;  }
+{
+  try { 
+	  ifNaoTerminal() expressao_logica() abreBloco()
+		
+		/* PODE OU NÃO TER VÁRIOS IF/FOR/DO ENCADEADO */
+	  (comando())*
+	
+	  fimBloco()
+	
+	  (elseNaoTerminal() abreBloco()
+	
+	  /* PODE OU NÃO TER VÁRIOS IF/FOR/DO ENCADEADO */
+	  (comando())*
+	
+	  fimBloco())?
+	}
+	catch(ParseException e) { consumeUntil(sinc, e, "if_funcao"); }
+}
+
+void ifNaoTerminal(): { RecoverySet sinc = First.ifNaoTerminal; } { try {  < IF > } catch(ParseException e) { consumeUntil(sinc, e, "ifNaoTerminal"); }}
+void elseNaoTerminal(): { RecoverySet sinc = First.elseNaoTerminal; } { try { < ELSE > } catch(ParseException e) { consumeUntil(sinc, e, "elseNaoTerminal"); }}
+void doNaoTerminal(): { RecoverySet sinc = First.doNaoTerminal; } { try { < DO > }catch(ParseException e) { consumeUntil(sinc, e, "doNaoTerminal"); } }
+
+void to(): { RecoverySet sinc = First.to; } { try { < TO > } catch(ParseException e) { consumeUntil(sinc, e, "to"); }}
+
+void do_funcao(): { RecoverySet sinc = First.do_funcao; }
+{
+  try { 
+  doNaoTerminal() abreBloco()
+  
+	/* PODE OU NÃO TER VÁRIOS IF/FOR/DO ENCADEADO */
+  (comando())*
+  fimBloco()
+
+  to() expressao_logica() }
+  catch(ParseException e) { consumeUntil(sinc, e, "do_funcao"); }
+}
+
+void expressao_logica() : { RecoverySet sinc = First.expressao_logica; }
+{
+  	try { 
+		(variavel_if() operador_logico() variavel_if())
+
+			/* POSSIBILIDADE DE COLOCAR MAIS DE UMA CONDIÇÃO LÓGICA NO MESMO IF OU DO WHILE */
+
+		( (and() | or()) expressao_logica())?
+	}
+	catch(ParseException e) { consumeUntil(sinc, e, "expressao_logica"); }
+}
+
+void and(): { RecoverySet sinc = First.and; } { try { < AND > } catch(ParseException e) { consumeUntil(sinc, e, "and"); } }
+void or(): { RecoverySet sinc = First.or; } { try { < OR > } catch(ParseException e) { consumeUntil(sinc, e, "or"); } }
+void palavra(): { RecoverySet sinc = First.palavra; } { try {  < PALAVRA > } catch(ParseException e) { consumeUntil(sinc, e, "palavra"); } }
+
+
+void variavel_if() : { RecoverySet sinc = First.variavel_if; } 
+{
+  	try { 
+	      id()|numero() | palavra()
+	}
+	catch(ParseException e) { consumeUntil(sinc, e, "variavel_if"); }
+}
+
+void operador_logico() : { RecoverySet sinc = First.operador_logico; } 
+{
+  try { 
+		sinalMaior()
+		|	sinalMenor()
+		|	sinalMenorIgual()
+		|	sinalMaiorIgual()
+		|	sinalDiferente()
+		|	sinalIgual()
+	}
+  catch(ParseException e) { consumeUntil(sinc, e, "operador_logico"); }
+}
+
+void sinalMaior(): { RecoverySet sinc = First.sinalMaior; } { try { < MAIOR > }catch(ParseException e) { consumeUntil(sinc, e, "sinalMaior"); } }
+void sinalMenor(): { RecoverySet sinc = First.sinalMenor; } { try { < MENOR > }catch(ParseException e) { consumeUntil(sinc, e, "sinalMenor"); }  }
+void sinalMenorIgual(): { RecoverySet sinc = First.sinalMenorIgual; } { try { < MENOR_IGUAL > }catch(ParseException e) { consumeUntil(sinc, e, "sinalMenorIgual"); }  }
+void sinalMaiorIgual(): { RecoverySet sinc = First.sinalMaiorIgual; } { try { < MAIOR_IGUAL > }catch(ParseException e) { consumeUntil(sinc, e, "sinalMaiorIgual"); }  }
+void sinalDiferente(): { RecoverySet sinc = First.sinalDiferente; } { try { < DIFERENTE > }catch(ParseException e) { consumeUntil(sinc, e, "sinalDiferente"); } }
+void sinalIgual(): { RecoverySet sinc = First.sinalIgual; } { try { < IGUAL > }catch(ParseException e) { consumeUntil(sinc, e, "sinalIgual"); }  }
+
+void declaracaoVariavel():
+{ RecoverySet sinc = First.declaracaoVariavel; }
+{
+  try { 
+  tipoDado() identificador_variaveis() pontoVirgula() } catch(ParseException e) { consumeUntil(sinc, e, "declaracaoVariavel"); }
+}
+
+void pontoVirgula(): { RecoverySet sinc = First.pontoVirgula; } {
+ try { <  PONTOVIRGULA > } catch (ParseException e) { consumeUntil(sinc, e, "pontoVirgula"); }
+}
+
+void identificador_variaveis() : { RecoverySet sinc = First.identificador_variaveis; } 
+{
+  	try { 
+  		/* NOME VARIAVEL */
+	  nomeVariavel()
+
+		/* PODE OU NÃO TER ATRIBUIÇÃO */
+	  (atribuir() (id() | numero() | falso() | verdadeiro() | palavra()))?
+
+		
+	  /* PODE OU NÃO TER MAIS DE UMA VARIÁVEL DECLARADA */
+	  (declararMais())?
+	}
+	catch (ParseException e) { consumeUntil(sinc, e, "identificador_variaveis"); }
+}
+
+void id(): { RecoverySet sinc = First.id; } {
+	try { 
+		< ID >
+	}
+	catch(ParseException e) { consumeUntil(sinc, e, "id"); }
+}
+
+
+void falso(): { RecoverySet sinc = First.falso; } {
+try { 
+	< FALSE >
+}
+catch(ParseException e) { consumeUntil(sinc, e, "falso"); }
+  }
+
+void verdadeiro() : { RecoverySet sinc = First.verdadeiro; } {
+try { 
+	< TRUE>
+}
+catch(ParseException e) { consumeUntil(sinc, e, "verdadeiro"); }
+  }
+
+void numero(): { RecoverySet sinc = First.numero; } {
+  try{ 
+	< NUMERO >
+   }
+  catch(ParseException e) { consumeUntil(sinc, e, "numero");   }
+  }
+
+void atribuir(): { RecoverySet sinc = First.atribuir; } {
+  try { 
+	< ATRIBUICAO >
+}
+catch(ParseException e) { consumeUntil(sinc, e, "atribuir"); }	
+}
+
+void declararMais(): { RecoverySet sinc = First.declararMais; }
+{
+
+	/* - aqui o token em comum sempre vai ser a vírgula seguida do nome da variável, o que pode ou não ter depois disso
+	   é a atribuição, por isso o ? nela.
+
+	   - Esse processo pode se repetir 1x ou mais
+	 */
+try{ 
+  
+  (virgula() nomeVariavel() (atribuicao())?)+
+}
+catch(ParseException e) { consumeUntil(sinc, e, "declararMais"); }
+}
+
+void virgula(): { RecoverySet sinc = First.virgula; } {try { < VIRGULA > }catch(ParseException e) { consumeUntil(sinc, e, "virgula"); }}
+
+void nomeVariavel(): { RecoverySet sinc = First.nomeVariavel; }
+{
+  try { 
+	(id() | letra())
+}
+catch(ParseException e) { consumeUntil(sinc, e, "nomeVariavel"); }
+}
+
+void letra(): { RecoverySet sinc = First.letra; } { try { < LETRA > } catch(ParseException e) { consumeUntil(sinc, e, "letra"); }}
+
+void atribuicao(): { RecoverySet sinc = First.atribuicao; }
+{
+  try { 
+  	(atribuir() (id() | numero() | falso() | verdadeiro() | palavra()))
+  }
+  catch (ParseException e) { consumeUntil(sinc, e, "atribuicao"); }
+}
+
+void tipoDado(): { RecoverySet sinc = First.tipoDado; }
+{    try { 
+	  		inteiro()|booleana()|string()
+	 }
+	 catch(ParseException e) { consumeUntil(sinc, e, "tipoDado"); }
+}
+
+void inteiro(): { RecoverySet sinc = First.inteiro; } { try { < INTEIRO > }catch (ParseException e) { consumeUntil(sinc, e, "inteiro"); } }
+void booleana(): { RecoverySet sinc = First.booleana; } { try { < BOOLEANA > }catch (ParseException e) { consumeUntil(sinc, e, "booleana"); } }
+void string(): { RecoverySet sinc = First.string; } { try { < STRING > }catch (ParseException e) { consumeUntil(sinc, e, "string"); } }
+
+void expressao_matematica() : { RecoverySet sinc = First.expressao_matematica; }
+
+{
+  try { 
+	(operador_matematico() extremidade_expressao())
+  }
+  catch(ParseException e) { consumeUntil(sinc, e, "expressao_matematica"); }
+}
+
+void extremidade_expressao():{ RecoverySet sinc = First.extremidade_expressao; }
+{
+  try{ 
+	id() | numero()
+  }
+  catch(ParseException e) { consumeUntil(sinc, e, "extremidade_expressao"); }
+    
+}
+
+void operador_matematico() : { RecoverySet sinc = First.operador_matematico; } 
+{
+  try { 
+			soma()
+		|	subtracao()
+		|	multiplicacao()
+		|	divisao()
+	}
+  catch(ParseException e) { consumeUntil(sinc, e, "operador_matematico"); }
+}
+
+void soma(): { } { < SOMA > }
+void subtracao(): { } { < SUBTRACAO > }
+void multiplicacao(): { } { < MULTIPLICACAO > }
+void divisao(): { } { < DIVISAO > }
+
+
